@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', "**/routeTree.**"]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -58,6 +58,13 @@ export default defineConfig([
       ],
       'newline-before-return' : 'error',
       'object-curly-spacing'  : ['error', 'always'],
+    },
+  },
+  {
+    // TanStack Router file routes export both `Route` and a component.
+    files : ['src/routes/**/*.{ts,tsx}'],
+    rules : {
+      'react-refresh/only-export-components' : 'off',
     },
   },
 ])
