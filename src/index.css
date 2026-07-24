@@ -61,13 +61,6 @@ body {
     @apply text-lg font-medium;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    @apply mb-2;
-  }
-
   h1:last-child,
   h2:last-child,
   h3:last-child,
@@ -77,7 +70,7 @@ body {
 
   p,
   .p {
-    @apply text-xs xl:text-sm 2xl:text-base font-normal my-4;
+    @apply text-xs xl:text-sm 2xl:text-base font-normal;
   }
 
   p:last-child {
@@ -116,7 +109,7 @@ body {
   .body-copy h3,
   .body-copy h4,
   .body-copy h5 {
-    @apply font-primary my-4;
+    @apply font-primary my-4 mb-2;
   }
 
   .body-copy h1,
