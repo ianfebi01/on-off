@@ -1,75 +1,68 @@
-# React + TypeScript + Vite
+# on-off
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small web app to control a smart bulb — read its current state and toggle it on/off through a remote API.
 
-Currently, two official plugins are available:
+## Tech stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **TypeScript** + **Vite**
+- **TanStack Router** — file-based routing (`src/routes/`)
+- **TanStack Query** — data fetching & mutations
+- **Tailwind CSS v4** — theming via CSS variables (`@theme` in `src/index.css`)
+- **Headless UI** — accessible `Switch` component
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app runs at `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start the dev server with HMR |
+| `pnpm build` | Type-check and build for production |
+| `pnpm preview` | Preview the production build |
+| `pnpm lint` | Run ESLint |
 
+## Project structure
+
+```
+src/
+├── routes/           # File-based routes (auto-generates routeTree.gen.ts)
+│   ├── __root.tsx    # Root layout
+│   ├── index.tsx     # Home — bulb state + toggle
+│   └── about.tsx
+├── components/
+│   ├── Buttons/      # Polymorphic Button (Link / anchor / button)
+│   ├── Inputs/       # Switch
+│   ├── Icons/        # Spinner
+│   └── RootComponents.tsx
+├── lib/utils.ts      # cn() — clsx + tailwind-merge
+├── index.css         # Tailwind theme, base typography, button styles
+└── main.tsx          # Router + QueryClient providers
+```
+
+## Theming
+
+Colors, fonts, and other design tokens are defined as CSS variables in the `@theme` block of `src/index.css`. The palette is white + navy blue, with **Work Sans** as the primary font (loaded in `index.html`).
+
+## API
+
+The bulb is controlled via a remote API:
+
+- `GET /bulb` — returns the current state, e.g. `{ "is_on": true }`
+- `PUT /bulb` — sets the state, body `{ "is_on": boolean }`
+
+Base URL: `https://bulb-api.ianfebisastrataruna.my.id`
+
+## Path alias
+
+`@` resolves to `src/` (configured in `vite.config.ts` and `tsconfig.app.json`):
+
+```ts
+import Button from '@/components/Buttons/Button'
 ```
