@@ -1,31 +1,22 @@
 import Switch from '@/components/Inputs/Switch'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { getBulb, getGetBulbQueryKey, useGetBulb, useSetBulb } from '../api/generated/bulb/bulb'
 
 export const Route = createFileRoute( '/' )( {
   component : Index,
 } )
 
-const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
-const BULB_URL = `${baseUrl}/bulb`
-
 function Index() {
   const queryClient = useQueryClient()
 
-  const { isPending, error, data } = useQuery( {
-    queryKey : ['bulb'],
-    queryFn  : () => fetch( BULB_URL ).then( ( res ) => res.json() ),
-  } )
+  const { isPending, error, data } = useGetBulb<Awaited<ReturnType<typeof getBulb>>, Error>()
 
-  const mutation = useMutation( {
-    mutationFn : ( isOn: boolean ) =>
-      fetch( BULB_URL, {
-        method  : 'PUT',
-        headers : { 'Content-Type' : 'application/json' },
-        body    : JSON.stringify( { is_on : isOn } ),
-      } ).then( ( res ) => res.json() ),
-    onSuccess : () => {
-      queryClient.invalidateQueries( { queryKey : ['bulb'] } )
+  const mutation = useSetBulb( {
+    mutation : {
+      onSuccess : () => {
+        queryClient.invalidateQueries( { queryKey : getGetBulbQueryKey() } )
+      },
     },
   } )
 
@@ -39,12 +30,12 @@ function Index() {
       <p className="text-navy-overlay">
         Your bulb is{' '}
         <code className="font-code text-navy-light">
-          {data.is_on ? 'On' : 'Off'}
+          {data?.data?.is_on ? 'On' : 'Off'}
         </code>
       </p>
       <Switch
-        enabled={data.is_on}
-        setEnabled={( value ) => mutation.mutate( value )}
+        enabled={data?.data?.is_on || false}
+        setEnabled={( value ) => mutation.mutate( { data : { is_on : value } } )}
       />
     </main>
   )

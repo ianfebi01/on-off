@@ -8,7 +8,11 @@ export async function apiFetch<T>( url: string, options?: RequestInit ): Promise
   const apiBaseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
   const target = resolveApiUrl( url, apiBaseUrl )
 
-  const response = await fetch( target, { ...options, headers, credentials : 'include' } )
+  // `same-origin` (the browser default) keeps cookies for same-origin requests
+  // (e.g. the production Nitro proxy) without triggering the credentialed
+  // cross-origin CORS check — the public API replies with
+  // `Access-Control-Allow-Origin: *`, which browsers reject under `include`.
+  const response = await fetch( target, { ...options, headers, credentials : 'same-origin' } )
 
   const contentType = response.headers.get( 'content-type' )
   const data: unknown
