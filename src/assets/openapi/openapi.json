@@ -1,0 +1,609 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Bulb API",
+        "description": "IoT bulb control API",
+        "license": {
+            "name": ""
+        },
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/bulb": {
+            "get": {
+                "tags": [
+                    "bulb"
+                ],
+                "summary": "GET /bulb — legacy flat response consumed by the IoT device.",
+                "description": "Unversioned on purpose: deployed devices poll this exact path, so it must\nnot move. Keeps the original shape `{ is_on, updated_at }` with `updated_at`\nas the raw Postgres text rendering. Do NOT change this — devices depend on it.\nNew clients should use `GET /v1/bulb` (see [`get_bulb_v1`]).",
+                "operationId": "get_bulb",
+                "responses": {
+                    "200": {
+                        "description": "Current bulb state (legacy v1 shape)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulbStateV1"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bulb state row not found"
+                    },
+                    "500": {
+                        "description": "Internal error"
+                    }
+                }
+            }
+        },
+        "/v1/bulb": {
+            "get": {
+                "tags": [
+                    "bulb"
+                ],
+                "summary": "GET /v1/bulb — return current bulb state in the standard envelope.",
+                "operationId": "get_bulb_v1",
+                "responses": {
+                    "200": {
+                        "description": "Current bulb state",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_BulbState"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bulb state row not found"
+                    },
+                    "500": {
+                        "description": "Internal error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "bulb"
+                ],
+                "summary": "PUT /v1/bulb — set bulb state via JSON body { \"is_on\": true/false }.",
+                "operationId": "set_bulb",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetBulbRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bulb state updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_BulbState"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bulb state row not found"
+                    }
+                }
+            }
+        },
+        "/v1/bulb/off": {
+            "post": {
+                "tags": [
+                    "bulb"
+                ],
+                "summary": "POST /v1/bulb/off — turn the bulb off.",
+                "operationId": "bulb_off",
+                "responses": {
+                    "200": {
+                        "description": "Bulb turned off",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_BulbState"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bulb state row not found"
+                    }
+                }
+            }
+        },
+        "/v1/bulb/on": {
+            "post": {
+                "tags": [
+                    "bulb"
+                ],
+                "summary": "POST /v1/bulb/on — turn the bulb on.",
+                "operationId": "bulb_on",
+                "responses": {
+                    "200": {
+                        "description": "Bulb turned on",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_BulbState"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bulb state row not found"
+                    }
+                }
+            }
+        },
+        "/v1/schedules": {
+            "get": {
+                "tags": [
+                    "schedules"
+                ],
+                "summary": "GET /v1/schedules — list all schedules.",
+                "operationId": "list_schedules",
+                "responses": {
+                    "200": {
+                        "description": "List of schedules",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_Vec_Schedule"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "schedules"
+                ],
+                "summary": "POST /v1/schedules — create a new schedule.",
+                "operationId": "create_schedule",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateScheduleRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Schedule created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_Schedule"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body"
+                    }
+                }
+            }
+        },
+        "/v1/schedules/{id}": {
+            "get": {
+                "tags": [
+                    "schedules"
+                ],
+                "summary": "GET /v1/schedules/{id} — fetch a single schedule.",
+                "operationId": "get_schedule",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Schedule id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The requested schedule",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_Schedule"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Schedule not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "schedules"
+                ],
+                "summary": "PUT /v1/schedules/{id} — update any subset of a schedule's fields.",
+                "operationId": "update_schedule",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Schedule id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateScheduleRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Schedule updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_Schedule"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body"
+                    },
+                    "404": {
+                        "description": "Schedule not found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "schedules"
+                ],
+                "summary": "DELETE /v1/schedules/{id} — delete a schedule.",
+                "operationId": "delete_schedule",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Schedule id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Schedule deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse_Schedule"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Schedule not found"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse_BulbState": {
+                "type": "object",
+                "description": "Standard success envelope for every handler:\n`{ \"success\": true, \"data\": ... }`.",
+                "required": [
+                    "success",
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "description": "v1 bulb response — typed timestamp, returned inside `ApiResponse`.",
+                        "required": [
+                            "is_on",
+                            "updated_at"
+                        ],
+                        "properties": {
+                            "is_on": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Serialized as RFC 3339 (e.g. `2026-07-27T10:40:00Z`).",
+                                "example": "2026-07-27T10:40:00Z"
+                            }
+                        }
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ApiResponse_Schedule": {
+                "type": "object",
+                "description": "Standard success envelope for every handler:\n`{ \"success\": true, \"data\": ... }`.",
+                "required": [
+                    "success",
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "description": "Response for schedule endpoints.",
+                        "required": [
+                            "id",
+                            "name",
+                            "cron_expr",
+                            "action",
+                            "enabled",
+                            "created_at",
+                            "updated_at"
+                        ],
+                        "properties": {
+                            "action": {
+                                "type": "string",
+                                "description": "\"on\" or \"off\""
+                            },
+                            "created_at": {
+                                "type": "string"
+                            },
+                            "cron_expr": {
+                                "type": "string"
+                            },
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "updated_at": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ApiResponse_Vec_Schedule": {
+                "type": "object",
+                "description": "Standard success envelope for every handler:\n`{ \"success\": true, \"data\": ... }`.",
+                "required": [
+                    "success",
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "description": "Response for schedule endpoints.",
+                            "required": [
+                                "id",
+                                "name",
+                                "cron_expr",
+                                "action",
+                                "enabled",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "properties": {
+                                "action": {
+                                    "type": "string",
+                                    "description": "\"on\" or \"off\""
+                                },
+                                "created_at": {
+                                    "type": "string"
+                                },
+                                "cron_expr": {
+                                    "type": "string"
+                                },
+                                "enabled": {
+                                    "type": "boolean"
+                                },
+                                "id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "updated_at": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "BulbState": {
+                "type": "object",
+                "description": "v1 bulb response — typed timestamp, returned inside `ApiResponse`.",
+                "required": [
+                    "is_on",
+                    "updated_at"
+                ],
+                "properties": {
+                    "is_on": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Serialized as RFC 3339 (e.g. `2026-07-27T10:40:00Z`).",
+                        "example": "2026-07-27T10:40:00Z"
+                    }
+                }
+            },
+            "BulbStateV1": {
+                "type": "object",
+                "description": "Legacy (v1) bulb response — flat shape consumed by the IoT device.\n`updated_at` is the raw Postgres text rendering (e.g. `2026-07-27 10:40:00+00`).\nDo NOT change this shape; existing devices depend on it.",
+                "required": [
+                    "is_on",
+                    "updated_at"
+                ],
+                "properties": {
+                    "is_on": {
+                        "type": "boolean",
+                        "description": "Whether the bulb is currently on.",
+                        "example": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "Raw Postgres text rendering of the last change.",
+                        "example": "2026-07-27 10:40:00+00"
+                    }
+                }
+            },
+            "CreateScheduleRequest": {
+                "type": "object",
+                "description": "Request body for POST /schedules",
+                "required": [
+                    "name",
+                    "cron_expr",
+                    "action"
+                ],
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Must be \"on\" or \"off\""
+                    },
+                    "cron_expr": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Schedule": {
+                "type": "object",
+                "description": "Response for schedule endpoints.",
+                "required": [
+                    "id",
+                    "name",
+                    "cron_expr",
+                    "action",
+                    "enabled",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "\"on\" or \"off\""
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "cron_expr": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SetBulbRequest": {
+                "type": "object",
+                "description": "Request body for PUT /v1/bulb",
+                "required": [
+                    "is_on"
+                ],
+                "properties": {
+                    "is_on": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
+            },
+            "UpdateScheduleRequest": {
+                "type": "object",
+                "description": "Request body for PUT /schedules/:id — all fields optional.",
+                "properties": {
+                    "action": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "cron_expr": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "enabled": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "bulb",
+            "description": "Bulb state endpoints"
+        },
+        {
+            "name": "schedule",
+            "description": "Cron schedules for the bulb"
+        }
+    ]
+}
