@@ -6,7 +6,8 @@ export const Route = createFileRoute( '/' )( {
   component : Index,
 } )
 
-const BULB_URL = 'https://bulb-api.ianfebisastrataruna.my.id/bulb'
+const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const BULB_URL = `${baseUrl}/bulb`
 
 function Index() {
   const queryClient = useQueryClient()
