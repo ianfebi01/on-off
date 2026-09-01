@@ -1,6 +1,6 @@
 import Switch from '@/components/Inputs/Switch'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   getBulbV1,
   getGetBulbV1QueryKey,
@@ -81,6 +81,8 @@ function Index() {
           <p className="text-red-500">Something went wrong, please try again later.</p>
         ) : null
       }
+
+      <Link to="/schedule">Schedule</Link>
     </main>
   )
 }
