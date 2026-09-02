@@ -2,6 +2,7 @@ import { format, isValid } from 'date-fns'
 import { createFileRoute } from '@tanstack/react-router'
 import { useListSchedules } from '../../api/generated/schedules/schedules'
 import type { ApiResponseVecScheduleDataItem } from '../../api/generated/bulbAPI.schemas'
+import Button from '../../components/Buttons/Button'
 
 export const Route = createFileRoute( '/schedule/' )( {
   component : RouteComponent,
@@ -13,32 +14,37 @@ function RouteComponent() {
   const schedules = data?.data?.data ?? []
 
   return (
-    <main className="flex min-h-screen flex-col justify-center items-center gap-4 p-8">
-      <h1 className="font-primary text-2xl text-navy">schedule</h1>
+    <main className="flex flex-col items-start gap-4">
+      <nav className='max-w-7xl mx-auto w-full p-4 flex justify-between items-center'>
+        <h1 className="font-primary text-2xl text-navy">schedule</h1>
+        <Button ariaLabel="Add Schedule"> Add Schedule</Button>
+      </nav>
+      <div className='container'>
 
-      { isPending ? (
-        <SkeletonList />
-      ) : error ? (
-        <p className="text-red-500">Something went wrong, please try again later.</p>
-      ) : schedules.length === 0 ? (
-        <p className="text-navy-overlay">No schedules yet.</p>
-      ) : (
-        <ul className="flex w-full max-w-md flex-col gap-3 list-none m-0">
-          { schedules.map( ( schedule ) => (
-            <ScheduleCard
-              key={schedule.id}
-              schedule={schedule}
-            />
-          ) ) }
-        </ul>
-      ) }
+        { isPending ? (
+          <SkeletonList />
+        ) : error ? (
+          <p className="text-red-500">Something went wrong, please try again later.</p>
+        ) : schedules.length === 0 ? (
+          <p className="text-navy-overlay">No schedules yet.</p>
+        ) : (
+          <ul className="flex w-full max-w-md flex-col gap-3 list-none m-0">
+            { schedules.map( ( schedule ) => (
+              <ScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+              />
+            ) ) }
+          </ul>
+        ) }
+      </div>
     </main>
   )
 }
 
 function SkeletonList() {
   return (
-    <ul className="flex w-full max-w-md justify-center flex-col gap-3 list-none m-0">
+    <ul className="flex w-full max-w-md flex-col gap-3 list-none m-0">
       { Array.from( { length : 3 } ).map( ( _, index ) => (
         <li
           key={index}

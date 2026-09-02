@@ -56,7 +56,7 @@ function Index() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4 container">
       <h1 className="font-primary text-2xl text-navy">on-off</h1>
       {
         isPending ? (

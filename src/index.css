@@ -184,3 +184,9 @@ body {
     @apply opacity-50 pointer-events-none hover:border-transparent;
   }
 }
+
+@layer utilities {
+  .container {
+    @apply px-6 lg:px-8 max-w-5xl mx-auto;
+  }
+}
