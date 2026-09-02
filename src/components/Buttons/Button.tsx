@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, type LinkProps } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
+import { Button as ShadcnButton } from '@/components/ui/button'
 import Spinner from '@/components/Icons/Spinner'
 
 export type ButtonVariant =
@@ -45,16 +46,6 @@ interface ButtonAsAnchor extends BaseProps {
 
 type Props = ButtonAsButton | ButtonAsLink | ButtonAsAnchor
 
-const variantClass: Record<ButtonVariant, string> = {
-  primary   : 'button-primary',
-  secondary : 'button-secondary',
-  outline   : 'button-outline',
-  icon      : 'button-icon',
-  iconOnly  : 'button-icon-only',
-  link      : 'button-link',
-  error     : 'button-error',
-}
-
 export default function Button( props: Props ) {
   const {
     children,
@@ -65,12 +56,7 @@ export default function Button( props: Props ) {
     ariaLabel,
   } = props
 
-  const classes = cn(
-    'button',
-    variantClass[variant],
-    disabled && 'button-disabled',
-    className
-  )
+  const classes = cn( disabled && 'button-disabled', className )
 
   const content = (
     <>
@@ -79,36 +65,46 @@ export default function Button( props: Props ) {
     </>
   )
 
-  // Internal route link
+  // Internal route link — `asChild` hands the button styling to the <Link>.
   if ( 'to' in props && props.to !== undefined ) {
     return (
-      <Link
-        to={props.to}
-        params={props.params}
-        search={props.search}
+      <ShadcnButton
+        asChild
+        variant={variant}
         className={classes}
         aria-label={ariaLabel}
-        disabled={disabled || loading}
         data-name="button"
       >
-        {content}
-      </Link>
+        <Link
+          to={props.to}
+          params={props.params}
+          search={props.search}
+          disabled={disabled || loading}
+        >
+          {content}
+        </Link>
+      </ShadcnButton>
     )
   }
 
   // External anchor
   if ( 'href' in props && props.href !== undefined ) {
     return (
-      <a
-        href={props.href}
-        target={props.target}
-        rel={props.target === '_blank' ? 'noopener noreferrer' : undefined}
+      <ShadcnButton
+        asChild
+        variant={variant}
         className={classes}
         aria-label={ariaLabel}
         data-name="button"
       >
-        {content}
-      </a>
+        <a
+          href={props.href}
+          target={props.target}
+          rel={props.target === '_blank' ? 'noopener noreferrer' : undefined}
+        >
+          {content}
+        </a>
+      </ShadcnButton>
     )
   }
 
@@ -116,15 +112,16 @@ export default function Button( props: Props ) {
   const { type = 'button', onClick } = props as ButtonAsButton
 
   return (
-    <button
+    <ShadcnButton
       type={type}
       onClick={onClick}
+      variant={variant}
       className={classes}
       disabled={disabled || loading}
       aria-label={ariaLabel}
       data-name="button"
     >
       {content}
-    </button>
+    </ShadcnButton>
   )
 }
