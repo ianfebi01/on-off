@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useListSchedules } from '../../api/generated/schedules/schedules'
 import type { ApiResponseVecScheduleDataItem } from '../../api/generated/bulbAPI.schemas'
 import Button from '../../components/Buttons/Button'
+import { ClockIcon } from 'lucide-react'
 
 export const Route = createFileRoute( '/schedule/' )( {
   component : RouteComponent,
@@ -17,7 +18,9 @@ function RouteComponent() {
     <main className="flex flex-col items-start gap-4">
       <nav className='max-w-7xl mx-auto w-full p-4 flex justify-between items-center'>
         <h1 className="font-primary text-2xl text-navy">schedule</h1>
-        <Button ariaLabel="Add Schedule"> Add Schedule</Button>
+        <Button ariaLabel="Add Schedule"
+          variant='secondary'
+        > <ClockIcon/> Add Schedule</Button>
       </nav>
       <div className='container'>
 
