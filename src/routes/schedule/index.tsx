@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useListSchedules } from '../../api/generated/schedules/schedules'
 import type { ApiResponseVecScheduleDataItem } from '../../api/generated/bulbAPI.schemas'
 import Button from '../../components/Buttons/Button'
+import { describeCron } from '../../lib/cron'
 import { ClockIcon } from 'lucide-react'
 
 export const Route = createFileRoute( '/schedule/' )( {
@@ -82,7 +83,12 @@ function ScheduleCard( { schedule }: { schedule: ApiResponseVecScheduleDataItem 
         </span>
       </div>
 
-      <p className="mt-3 font-code text-sm text-navy-light">{schedule.cron_expr}</p>
+      <p
+        className="mt-3 text-sm text-navy-light"
+        title={schedule.cron_expr}
+      >
+        {describeCron( schedule.cron_expr ) ?? <span className="font-code">{schedule.cron_expr}</span>}
+      </p>
 
       <p className="mt-2 text-xs text-navy-overlay">
         Updated {updatedLabel}
