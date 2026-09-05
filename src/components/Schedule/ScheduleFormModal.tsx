@@ -7,7 +7,9 @@ import { SaveCheckIcon } from 'lucide-react'
 import {
   getListSchedulesQueryKey,
   useCreateSchedule,
+  useUpdateSchedule,
 } from '@/api/generated/schedules/schedules'
+import type { ApiResponseVecScheduleDataItem } from '@/api/generated/bulbAPI.schemas'
 import Button from '@/components/Buttons/Button'
 import Switch from '@/components/Inputs/Switch'
 import TimePicker from '@/components/Inputs/TimePicker'
@@ -28,6 +30,8 @@ import {
 interface Props {
   open: boolean
   onOpenChange: ( open: boolean ) => void
+  /** Existing schedule to edit, or omit to create a new one. */
+  schedule?: ApiResponseVecScheduleDataItem
 }
 
 const schema = z.object( {
@@ -43,10 +47,14 @@ const inputClassName =
 
 const labelClassName = 'text-sm font-medium text-navy'
 
-export default function AddScheduleModal( { open, onOpenChange }: Props ) {
+export default function ScheduleFormModal( { open, onOpenChange, schedule }: Props ) {
   const queryClient = useQueryClient()
-  const mutation = useCreateSchedule()
+  const createMutation = useCreateSchedule()
+  const updateMutation = useUpdateSchedule()
   const [ submitError, setSubmitError ] = useState<string | null>( null )
+
+  const isEditing = schedule !== undefined
+  const isPending = createMutation.isPending || updateMutation.isPending
 
   const {
     register,
@@ -60,17 +68,47 @@ export default function AddScheduleModal( { open, onOpenChange }: Props ) {
   } )
 
   useEffect( () => {
-    if ( open ) reset()
-  }, [ open, reset ] )
+    if ( !open ) return
+    if ( schedule ) {
+      reset( {
+        action    : schedule.action,
+        cron_expr : schedule.cron_expr,
+        name      : schedule.name,
+      } )
+    } else {
+      reset( { action : 'on', cron_expr : '', name : '' } )
+    }
+  }, [ open, schedule, reset ] )
+
+  const handleOpenChange = ( next: boolean ) => {
+    if ( !next ) setSubmitError( null )
+    onOpenChange( next )
+  }
 
   const onSubmit = async ( data: FormValues ) => {
     setSubmitError( null )
     try {
-      const response = await mutation.mutateAsync( { data } )
-      if ( response.status !== 200 ) {
-        setSubmitError( 'Could not create the schedule. Please try again.' )
-        
-        return
+      if ( schedule ) {
+        const response = await updateMutation.mutateAsync( {
+          id   : schedule.id,
+          data : {
+            name      : data.name,
+            action    : data.action,
+            cron_expr : data.cron_expr,
+          },
+        } )
+        if ( response.status !== 200 ) {
+          setSubmitError( 'Could not update the schedule. Please try again.' )
+          
+          return
+        }
+      } else {
+        const response = await createMutation.mutateAsync( { data } )
+        if ( response.status !== 200 ) {
+          setSubmitError( 'Could not create the schedule. Please try again.' )
+          
+          return
+        }
       }
       await queryClient.invalidateQueries( {
         queryKey : getListSchedulesQueryKey(),
@@ -84,13 +122,15 @@ export default function AddScheduleModal( { open, onOpenChange }: Props ) {
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Schedule</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Schedule' : 'Add Schedule'}</DialogTitle>
           <DialogDescription>
-            Turn the light on or off at a time of day.
+            {isEditing
+              ? 'Update the schedule details below.'
+              : 'Turn the light on or off at a time of day.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -198,14 +238,14 @@ export default function AddScheduleModal( { open, onOpenChange }: Props ) {
             <Button
               variant="outline"
               onClick={ () => onOpenChange( false ) }
-              disabled={mutation.isPending}
+              disabled={isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="primary"
-              loading={mutation.isPending}
+              loading={isPending}
             >
               {' '}
               <SaveCheckIcon /> Save

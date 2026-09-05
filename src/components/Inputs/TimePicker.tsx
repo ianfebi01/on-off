@@ -41,9 +41,30 @@ interface WheelProps {
  * clicks needed. The initial `selected` row is centred on mount; from then on
  * every scroll re-pins the row that settles in the middle.
  */
+/** Index (into `values`) of the option nearest the list's vertical centre. */
+function closestOptionIndex( list: HTMLUListElement ): number {
+  const centerY = list.getBoundingClientRect().top + list.clientHeight / 2
+  let closest = -1
+  let closestDistance = Infinity
+
+  list.querySelectorAll<HTMLElement>( '[role="option"]' ).forEach( ( option, index ) => {
+    const optionCenter = option.getBoundingClientRect().top + option.offsetHeight / 2
+    const distance = Math.abs( optionCenter - centerY )
+    if ( distance < closestDistance ) {
+      closestDistance = distance
+      closest = index
+    }
+  } )
+
+  return closest
+}
+
 function Wheel( { values, selected, onSelect, ariaLabel }: WheelProps ) {
   const listRef = useRef<HTMLUListElement>( null )
   const padHeight = ( ( VISIBLE_COUNT - 1 ) / 2 ) * ITEM_HEIGHT
+  const pendingDelta = useRef( 0 )
+  const frameId = useRef<number | null>( null )
+  const settleId = useRef<number | null>( null )
 
   // Centre the initial `selected` row on mount.
   useEffect( () => {
@@ -59,27 +80,66 @@ function Wheel( { values, selected, onSelect, ariaLabel }: WheelProps ) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- centre on mount only
   }, [] )
 
-  // Pin whichever row is closest to the middle of the list as the user scrolls.
+  // Native wheel scrolling is suppressed inside a modal dialog (scroll-lock),
+  // so scroll the list ourselves. Deltas are applied once per animation frame,
+  // which reads like smooth, native scrolling.
+  useEffect( () => {
+    const list = listRef.current
+    if ( !list ) return
+
+    const flush = () => {
+      frameId.current = null
+      const delta = pendingDelta.current
+      pendingDelta.current = 0
+      if ( delta === 0 ) return
+      const max = list.scrollHeight - list.clientHeight
+      list.scrollTop = Math.min( Math.max( list.scrollTop + delta, 0 ), max )
+    }
+
+    const handleWheel = ( event: WheelEvent ) => {
+      event.preventDefault()
+      pendingDelta.current += event.deltaY
+      if ( frameId.current === null ) {
+        frameId.current = requestAnimationFrame( flush )
+      }
+    }
+
+    list.addEventListener( 'wheel', handleWheel, { passive : false } )
+
+    return () => {
+      list.removeEventListener( 'wheel', handleWheel )
+      if ( frameId.current !== null ) cancelAnimationFrame( frameId.current )
+      if ( settleId.current !== null ) window.clearTimeout( settleId.current )
+    }
+  }, [] )
+
+  // Ease the pinned row back to the exact centre once scrolling has settled.
+  const settleToCentre = ( list: HTMLUListElement ) => {
+    settleId.current = null
+    const index = closestOptionIndex( list )
+    const option = list.querySelectorAll<HTMLElement>( '[role="option"]' )[ index ]
+    if ( !option ) return
+
+    const optionCenter = option.getBoundingClientRect().top + option.offsetHeight / 2
+    const listCenter = list.getBoundingClientRect().top + list.clientHeight / 2
+    const offset = optionCenter - listCenter
+    if ( Math.abs( offset ) > 1 ) {
+      list.scrollTo( { top : list.scrollTop + offset, behavior : 'smooth' } )
+    }
+  }
+
+  // Pin whichever row is closest to the middle of the list while scrolling.
   const handleScroll = () => {
     const list = listRef.current
     if ( !list ) return
-    const centerY = list.getBoundingClientRect().top + list.clientHeight / 2
-
-    let closest = -1
-    let closestDistance = Infinity
-    list.querySelectorAll<HTMLElement>( '[role="option"]' ).forEach( ( option, index ) => {
-      const optionCenter = option.getBoundingClientRect().top + option.offsetHeight / 2
-      const distance = Math.abs( optionCenter - centerY )
-      if ( distance < closestDistance ) {
-        closestDistance = distance
-        closest = index
-      }
-    } )
-
-    const value = values[ closest ]
+    const index = closestOptionIndex( list )
+    const value = values[ index ]
     if ( value !== undefined && value !== selected ) {
       onSelect( value )
     }
+
+    if ( settleId.current !== null ) window.clearTimeout( settleId.current )
+    settleId.current = window.setTimeout( () => settleToCentre( list ), 120 )
   }
 
   return (
@@ -90,7 +150,7 @@ function Wheel( { values, selected, onSelect, ariaLabel }: WheelProps ) {
         aria-label={ariaLabel}
         onScroll={handleScroll}
         style={ { height : VISIBLE_COUNT * ITEM_HEIGHT } }
-        className="snap-y snap-mandatory overscroll-contain overflow-y-auto scrollbar-none flex flex-col p-0 m-0 list-none select-none"
+        className="overscroll-contain overflow-y-auto scrollbar-none flex flex-col p-0 m-0 list-none select-none"
       >
         <li
           aria-hidden
@@ -107,7 +167,7 @@ function Wheel( { values, selected, onSelect, ariaLabel }: WheelProps ) {
               aria-selected={active}
               style={ { height : ITEM_HEIGHT } }
               className={ cn(
-                'flex shrink-0 items-center justify-center snap-center font-medium text-sm',
+                'flex shrink-0 items-center justify-center font-medium text-sm',
                 active ? 'text-navy-light' : 'text-navy/25'
               ) }
             >
