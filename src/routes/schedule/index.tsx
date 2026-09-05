@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useListSchedules } from '../../api/generated/schedules/schedules'
 import Button from '../../components/Buttons/Button'
+import AddScheduleModal from '../../components/Schedule/AddScheduleModal'
 import ScheduleCard from '../../components/Schedule/ScheduleCard'
 import { ClockIcon } from 'lucide-react'
 
@@ -10,6 +12,7 @@ export const Route = createFileRoute( '/schedule/' )( {
 
 function RouteComponent() {
   const { isPending, error, data } = useListSchedules()
+  const [ open, setOpen ] = useState( false )
 
   const schedules = data?.data?.data ?? []
 
@@ -18,7 +21,8 @@ function RouteComponent() {
       <nav className='max-w-7xl mx-auto w-full p-4 flex justify-between items-center'>
         <h1 className="font-primary text-2xl text-navy">schedule</h1>
         <Button ariaLabel="Add Schedule"
-          variant='secondary'
+          variant='primary'
+          onClick={ () => setOpen( true ) }
         > <ClockIcon/> Add Schedule</Button>
       </nav>
       <div className='container'>
@@ -40,6 +44,11 @@ function RouteComponent() {
           </ul>
         ) }
       </div>
+
+      <AddScheduleModal
+        open={open}
+        onOpenChange={setOpen}
+      />
     </main>
   )
 }

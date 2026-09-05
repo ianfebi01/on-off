@@ -24,11 +24,11 @@ const MONTH_NAMES = [
 ]
 
 const MONTH_INDEX: Record<string, number> = {
-  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  jan : 1, feb : 2, mar : 3, apr : 4, may : 5, jun : 6,
+  jul : 7, aug : 8, sep : 9, oct : 10, nov : 11, dec : 12,
 }
 const DOW_INDEX: Record<string, number> = {
-  sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
+  sun : 0, mon : 1, tue : 2, wed : 3, thu : 4, fri : 5, sat : 6,
 }
 
 const pad = ( n: number ) => String( n ).padStart( 2, '0' )
@@ -36,6 +36,7 @@ const pad = ( n: number ) => String( n ).padStart( 2, '0' )
 /** Replace English month/day names with numbers inside a raw field string. */
 function replaceNames( field: string, index: Record<string, number> ): string {
   const lower = field.toLowerCase()
+  
   return Object.keys( index ).reduce(
     ( acc, name ) => acc.replace( new RegExp( name, 'g' ), String( index[name] ) ),
     lower,
@@ -92,6 +93,7 @@ function expandField(
 function normalizeDow( values: number[] | null ): number[] | null {
   if ( !values ) return null
   const set = new Set( values.map( ( v ) => ( v === 7 ? 0 : v ) ) )
+  
   return [ ...set ].sort( ( a, b ) => a - b )
 }
 
@@ -103,6 +105,7 @@ function progressionStep( sorted: number[] ): number | null {
   for ( let i = 2; i < sorted.length; i++ ) {
     if ( sorted[i] - sorted[i - 1] !== step ) return null
   }
+  
   return step
 }
 
@@ -113,6 +116,7 @@ function progressionStep( sorted: number[] ): number | null {
 function coversFull( values: number[], min: number, max: number ): boolean {
   const step = progressionStep( values )
   if ( step === null ) return false
+  
   return values[0] === min &&
     values.length === Math.floor( ( max - min ) / step ) + 1
 }
@@ -120,6 +124,7 @@ function coversFull( values: number[], min: number, max: number ): boolean {
 function ordinal( n: number ): string {
   const s = [ 'th', 'st', 'nd', 'rd' ]
   const v = n % 100
+  
   return `${n}${s[( v - 20 ) % 10] ?? s[v] ?? s[0]}`
 }
 
@@ -127,6 +132,7 @@ function ordinal( n: number ): string {
 function joinList( items: string[] ): string {
   if ( items.length <= 1 ) return items.join( '' )
   if ( items.length === 2 ) return items.join( ' & ' )
+  
   return `${items.slice( 0, -1 ).join( ', ' )} & ${items[items.length - 1]}`
 }
 
@@ -161,19 +167,21 @@ function describeWhen(
 
   // Every second, or regular sub-minute intervals (`every 10 seconds`).
   if ( minuteAll && hourAll ) {
-    if ( secondAll ) return { kind: 'freq', text: 'every second' }
+    if ( secondAll ) return { kind : 'freq', text : 'every second' }
     if ( coversFull( seconds, 0, 59 ) ) {
       const step = seconds[1] - seconds[0]
-      return { kind: 'freq', text: `every ${step} seconds` }
+      
+      return { kind : 'freq', text : `every ${step} seconds` }
     }
     if ( seconds.length === 1 ) {
       return {
-        kind: 'freq',
-        text: seconds[0] === 0
+        kind : 'freq',
+        text : seconds[0] === 0
           ? 'every minute'
           : `every minute at ${seconds[0]} seconds past`,
       }
     }
+    
     return null
   }
 
@@ -186,15 +194,16 @@ function describeWhen(
     const mStep = progressionStep( minutes )
     if ( coversFull( minutes, 0, 59 ) ) {
       return {
-        kind: 'freq',
-        text: mStep === 1 ? 'every minute' : `every ${mStep} minutes`,
+        kind : 'freq',
+        text : mStep === 1 ? 'every minute' : `every ${mStep} minutes`,
       }
     }
     if ( minutes.length === 1 ) {
       const m = minutes[0]
+      
       return {
-        kind: 'freq',
-        text: m === 0
+        kind : 'freq',
+        text : m === 0
           ? 'every hour on the hour'
           : `every hour at ${pad( m )} minutes past`,
       }
@@ -203,8 +212,10 @@ function describeWhen(
       const parts = minutes.map( ( m ) =>
         m === 0 ? 'on the hour' : `${pad( m )} minutes past`,
       )
-      return { kind: 'freq', text: `${joinList( parts )} of each hour` }
+      
+      return { kind : 'freq', text : `${joinList( parts )} of each hour` }
     }
+    
     return null
   }
 
@@ -213,19 +224,21 @@ function describeWhen(
     const m = minutes[0]
     if ( coversFull( hours, 0, 23 ) && hours[0] === 0 ) {
       const hStep = hours[1] - hours[0]
+      
       return {
-        kind: 'freq',
-        text: m === 0
+        kind : 'freq',
+        text : m === 0
           ? `every ${hStep} hours`
           : `every ${hStep} hours at ${pad( m )} minutes past`,
       }
     }
     if ( hours.length <= 8 ) {
       return {
-        kind: 'time',
-        text: `at ${joinList( hours.map( ( h ) => toTime( h, m, secondOffset ) ) )}`,
+        kind : 'time',
+        text : `at ${joinList( hours.map( ( h ) => toTime( h, m, secondOffset ) ) )}`,
       }
     }
+    
     return null
   }
 
@@ -234,7 +247,8 @@ function describeWhen(
   for ( const h of hours ) {
     for ( const m of minutes ) combos.push( toTime( h, m, secondOffset ) )
   }
-  if ( combos.length <= 8 ) return { kind: 'time', text: `at ${joinList( combos )}` }
+  if ( combos.length <= 8 ) return { kind : 'time', text : `at ${joinList( combos )}` }
+  
   return null
 }
 
@@ -264,6 +278,7 @@ function describeDays(
       if ( doms.length <= 4 && !coversFull( doms, 1, 31 ) ) {
         return `on the ${joinList( doms.map( ordinal ) )} of ${monthsLabel}`
       }
+      
       return null
     }
     if ( coversFull( doms, 1, 31 ) ) {
@@ -273,6 +288,7 @@ function describeDays(
     if ( doms.length <= 4 ) {
       return `on the ${joinList( doms.map( ordinal ) )}`
     }
+    
     return null
   }
 
@@ -290,10 +306,12 @@ function describeDays(
     if ( dows.length <= 5 ) {
       return joinList( dows.map( ( d ) => DOW_NAMES[d] ) )
     }
+    
     return null
   }
 
   if ( monthsLabel ) return `in ${monthsLabel}`
+  
   return '' // runs every day
 }
 
@@ -339,4 +357,27 @@ export function describeCron( cronExpr: string ): string | null {
   }
 
   return text.charAt( 0 ).toUpperCase() + text.slice( 1 )
+}
+
+/**
+ * Build a 6-field tokio-scheduler cron that fires once daily at the given
+ * clock time (second = 0, every day): `0 minute hour * * *`.
+ */
+export function buildDailyCron( hour: number, minute: number ): string {
+  return `0 ${minute} ${hour} * * *`
+}
+
+/**
+ * Read a `HH:mm` time back out of a daily cron built by {@link buildDailyCron}.
+ * Returns `null` when the expression isn't that simple daily shape.
+ */
+export function parseDailyCronTime( cronExpr: string ): string | null {
+  const match = /^0\s+(\d{1,2})\s+(\d{1,2})\s+\*\s+\*\s+\*$/.exec( cronExpr.trim() )
+  if ( !match ) return null
+
+  const minute = Number( match[1] )
+  const hour = Number( match[2] )
+  if ( hour > 23 || minute > 59 ) return null
+
+  return `${pad( hour )}:${pad( minute )}`
 }
