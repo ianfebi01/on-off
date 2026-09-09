@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   getListSchedulesQueryKey,
   useDeleteSchedule,
@@ -78,7 +78,11 @@ function RouteComponent() {
   return (
     <main className="flex flex-col items-start gap-4">
       <nav className='max-w-7xl mx-auto w-full p-4 flex justify-between items-center'>
-        <h1 className="font-primary text-2xl text-navy">schedule</h1>
+        <Link to="/"
+          className="no-underline"
+        >
+          <h1 className="font-primary text-2xl text-navy">schedule</h1>
+        </Link>
         <Button ariaLabel="Add Schedule"
           variant='primary'
           onClick={openAdd}
