@@ -1,18 +1,60 @@
 import { resolveApiUrl } from "../lib/utils"
+import { API_BASE_URL } from "./env"
 
 const NO_CONTENT = 204
+
+let refreshPromise: Promise<boolean> | null = null
+
+async function requestTokenRefresh( apiBaseUrl: string ): Promise<boolean> {
+  if ( refreshPromise ) {
+    return refreshPromise
+  }
+
+  refreshPromise = ( async () => {
+    try {
+      const refreshUrl = resolveApiUrl( '/v1/auth/refresh', apiBaseUrl )
+      const res = await fetch( refreshUrl, {
+        method      : 'POST',
+        credentials : 'include',
+      } )
+
+      return res.status === 200
+    } catch {
+      return false
+    } finally {
+      refreshPromise = null
+    }
+  } )()
+
+  return refreshPromise
+}
 
 export async function apiFetch<T>( url: string, options?: RequestInit ): Promise<T> {
   const headers = new Headers( options?.headers )
 
-  const apiBaseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
+  const apiBaseUrl = API_BASE_URL
   const target = resolveApiUrl( url, apiBaseUrl )
 
-  // `same-origin` (the browser default) keeps cookies for same-origin requests
-  // (e.g. the production Nitro proxy) without triggering the credentialed
-  // cross-origin CORS check — the public API replies with
-  // `Access-Control-Allow-Origin: *`, which browsers reject under `include`.
-  const response = await fetch( target, { ...options, headers, credentials : 'same-origin' } )
+  const fetchOptions: RequestInit = {
+    credentials : options?.credentials ?? 'include',
+    ...options,
+    headers,
+  }
+
+  let response = await fetch( target, fetchOptions )
+
+  const isRefreshExcluded =
+    url.includes( '/v1/auth/login' ) ||
+    url.includes( '/v1/auth/register' ) ||
+    url.includes( '/v1/auth/refresh' ) ||
+    url.includes( '/v1/auth/logout' )
+
+  if ( response.status === 401 && !isRefreshExcluded ) {
+    const refreshed = await requestTokenRefresh( apiBaseUrl )
+    if ( refreshed ) {
+      response = await fetch( target, fetchOptions )
+    }
+  }
 
   const contentType = response.headers.get( 'content-type' )
   const data: unknown

@@ -7,4 +7,4 @@
  * `import.meta` and would otherwise log an `empty-import-meta` warning on every
  * `pnpm generate:api-client` run.
  */
-export const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
+export const API_BASE_URL = import.meta.env.VITE_BASE_URL || ''
