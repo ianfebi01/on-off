@@ -5,6 +5,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { AuthProvider } from '@/context/AuthContext'
+import Header from './Header'
 
 const queryClient = new QueryClient()
 
@@ -12,7 +14,10 @@ export default function RootComponent() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <Outlet />
+        <AuthProvider>
+          <Header/>
+          <Outlet />
+        </AuthProvider>
       </QueryClientProvider>
       <TanStackRouterDevtools position="bottom-right" />
     </>
