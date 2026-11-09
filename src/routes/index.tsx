@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useOptimistic, useTransition } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import Switch from '@/components/Inputs/Switch'
@@ -30,29 +30,24 @@ function Index() {
     Error
   >()
 
-  const [ isOn, setIsOn ] = useState( false )
+  const serverIsOn = data?.data?.data?.is_on ?? false
+  const [ isOn, setOptimisticIsOn ] = useOptimistic( serverIsOn )
+  const [ isTransitioning, startTransition ] = useTransition()
 
-  const [ lastData, setLastData ] = useState( data )
-  if ( data !== lastData ) {
-    setLastData( data )
-    if ( data ) setIsOn( data.data?.data?.is_on ?? false )
-  }
-
-  const mutation = useSetBulb( {
-    mutation : {
-      onSuccess : ( _response, variables ) => {
-        setIsOn( variables.data.is_on )
-        queryClient.invalidateQueries( { queryKey : getGetBulbV1QueryKey() } )
-      },
-      onError : ( _error, variables ) => {
-        setIsOn( !variables.data.is_on )
-      },
-    },
-  } )
+  const mutation = useSetBulb()
 
   const handleSwitchChange = ( value: boolean ) => {
-    setIsOn( value )
-    mutation.mutate( { data : { is_on : value } } )
+    startTransition( async () => {
+      setOptimisticIsOn( value )
+      try {
+        await mutation.mutateAsync( { data : { is_on : value } } )
+        // Keep the optimistic value until the server state is refreshed
+        await queryClient.invalidateQueries( { queryKey : getGetBulbV1QueryKey() } )
+      } catch {
+        // Optimistic value reverts automatically when the transition ends;
+        // the error is surfaced via mutation.error
+      }
+    } )
   }
 
   return (
@@ -73,7 +68,7 @@ function Index() {
 
         <Switch
           enabled={isOn}
-          disabled={isPending || mutation.isPending}
+          disabled={isPending || isTransitioning}
           setEnabled={handleSwitchChange}
         />
 
