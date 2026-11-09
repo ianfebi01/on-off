@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { ClockIcon } from 'lucide-react'
 import {
   getListSchedulesQueryKey,
   useDeleteSchedule,
@@ -10,6 +11,7 @@ import type { ApiResponseVecScheduleDataItem } from '../../api/generated/bulbAPI
 import Button from '../../components/Buttons/Button'
 import ScheduleCard from '../../components/Schedule/ScheduleCard'
 import ScheduleFormModal from '../../components/Schedule/ScheduleFormModal'
+import { ProtectedRoute } from '@/components/Auth/AuthGuard'
 import {
   Dialog,
   DialogContent,
@@ -18,13 +20,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../components/ui/dialog'
-import { ClockIcon } from 'lucide-react'
 
 type ScheduleItem = ApiResponseVecScheduleDataItem
 
 export const Route = createFileRoute( '/schedule/' )( {
-  component : RouteComponent,
+  component : SchedulePage,
 } )
+
+function SchedulePage() {
+  return (
+    <ProtectedRoute>
+      <RouteComponent />
+    </ProtectedRoute>
+  )
+}
 
 function RouteComponent() {
   const queryClient = useQueryClient()
@@ -77,18 +86,15 @@ function RouteComponent() {
 
   return (
     <main className="flex flex-col items-start gap-4">
-      <nav className='max-w-7xl mx-auto w-full p-4 flex justify-between items-center'>
-        <Link to="/"
-          className="no-underline"
-        >
-          <h1 className="font-primary text-2xl text-navy">schedule</h1>
-        </Link>
-        <Button ariaLabel="Add Schedule"
-          variant='primary'
-          onClick={openAdd}
-        > <ClockIcon/> Add Schedule</Button>
-      </nav>
       <div className='container'>
+        <Button
+          ariaLabel="Add Schedule"
+          variant="primary"
+          className='my-4'
+          onClick={openAdd}
+        >
+          <ClockIcon className="w-4 h-4" /> Add Schedule
+        </Button>
 
         { isPending ? (
           <SkeletonList />

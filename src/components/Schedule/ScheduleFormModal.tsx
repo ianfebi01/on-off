@@ -104,7 +104,7 @@ export default function ScheduleFormModal( { open, onOpenChange, schedule }: Pro
         }
       } else {
         const response = await createMutation.mutateAsync( { data } )
-        if ( response.status !== 200 ) {
+        if ( response.status !== 201 ) {
           setSubmitError( 'Could not create the schedule. Please try again.' )
           
           return
