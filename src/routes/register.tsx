@@ -7,6 +7,8 @@ import { UserPlusIcon } from 'lucide-react'
 import { useAuth } from '@/context/useAuth'
 import { GuestRoute } from '@/components/Auth/AuthGuard'
 import Button from '@/components/Buttons/Button'
+import Card from '@/components/Cards/Card'
+import Input from '@/components/Inputs/Input'
 
 export const Route = createFileRoute( '/register' )( {
   component : RegisterPage,
@@ -24,10 +26,6 @@ const schema = z
   } )
 
 type FormValues = z.infer<typeof schema>
-
-const inputClassName =
-  'transition-all duration-200 ease-in-out h-10 p-2 rounded-lg border border-navy/25 outline-none focus:ring-2 focus:outline-0 focus:ring-blue-400 placeholder:text-navy-overlay text-navy text-sm w-full'
-const labelClassName = 'text-sm font-medium text-navy'
 
 function RegisterPage() {
   const { register : registerUser } = useAuth()
@@ -58,7 +56,7 @@ function RegisterPage() {
   return (
     <GuestRoute>
       <main className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-sm rounded-2xl border border-navy/10 bg-white p-6 shadow-sm flex flex-col gap-5">
+        <Card className="max-w-sm">
           <div className="flex flex-col items-center gap-1 text-center">
             <h1 className="font-primary text-2xl text-navy">on-off</h1>
             <p className="text-xs text-navy-overlay">
@@ -71,65 +69,35 @@ function RegisterPage() {
             className="flex flex-col gap-4"
             noValidate
           >
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="username"
-                className={labelClassName}
-              >
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                autoComplete="username"
-                placeholder="Choose a username"
-                className={inputClassName}
-                {...register( 'username' )}
-              />
-              {errors.username?.message ? (
-                <p className="text-xs text-red-500">{errors.username.message}</p>
-              ) : null}
-            </div>
+            <Input
+              id="username"
+              label="Username"
+              type="text"
+              autoComplete="username"
+              placeholder="Choose a username"
+              error={errors.username?.message}
+              {...register( 'username' )}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="password"
-                className={labelClassName}
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Choose a password (min 6 chars)"
-                className={inputClassName}
-                {...register( 'password' )}
-              />
-              {errors.password?.message ? (
-                <p className="text-xs text-red-500">{errors.password.message}</p>
-              ) : null}
-            </div>
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Choose a password (min 6 chars)"
+              error={errors.password?.message}
+              {...register( 'password' )}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="confirmPassword"
-                className={labelClassName}
-              >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Confirm your password"
-                className={inputClassName}
-                {...register( 'confirmPassword' )}
-              />
-              {errors.confirmPassword?.message ? (
-                <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
-              ) : null}
-            </div>
+            <Input
+              id="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Confirm your password"
+              error={errors.confirmPassword?.message}
+              {...register( 'confirmPassword' )}
+            />
 
             {submitError ? (
               <p className="text-xs text-red-500 bg-red-50 border border-red-200 p-2 rounded-lg">
@@ -156,7 +124,7 @@ function RegisterPage() {
               Log in
             </Link>
           </p>
-        </div>
+        </Card>
       </main>
     </GuestRoute>
   )
