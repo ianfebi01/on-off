@@ -1,5 +1,6 @@
 import { useId, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { inputClassName, labelClassName as baseLabelClassName } from './inputStyles'
 
 interface Props extends ComponentProps<'input'> {
   label?: ReactNode
@@ -30,7 +31,7 @@ export default function Input( {
       {label ? (
         <label
           htmlFor={inputId}
-          className={cn( 'text-sm font-medium text-navy', labelClassName )}
+          className={cn( baseLabelClassName, labelClassName )}
         >
           {label}
         </label>
@@ -41,10 +42,7 @@ export default function Input( {
         id={inputId}
         aria-invalid={error ? true : props[ 'aria-invalid' ]}
         aria-describedby={describedBy}
-        className={cn(
-          'transition-all duration-200 ease-in-out h-10 py-2 px-4 rounded-full border border-navy/25 outline-none focus:ring-2 focus:outline-0 focus:ring-blue-400 placeholder:text-navy-overlay text-navy text-base w-full disabled:opacity-50 disabled:cursor-not-allowed',
-          className
-        )}
+        className={cn( inputClassName, className )}
       />
       {error ? (
         <p

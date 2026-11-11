@@ -11,6 +11,8 @@ import {
 } from '@/api/generated/schedules/schedules'
 import type { ApiResponseVecScheduleDataItem } from '@/api/generated/bulbAPI.schemas'
 import Button from '@/components/Buttons/Button'
+import Input from '@/components/Inputs/Input'
+import { labelClassName } from '@/components/Inputs/inputStyles'
 import Switch from '@/components/Inputs/Switch'
 import TimePicker from '@/components/Inputs/TimePicker'
 import {
@@ -41,11 +43,6 @@ const schema = z.object( {
 } )
 
 type FormValues = z.infer<typeof schema>
-
-const inputClassName =
-  'transition-all duration-200 ease-in-out h-10 p-2 rounded-lg border border-navy/25 outline-none focus:ring-2 focus:outline-0 focus:ring-blue-400 placeholder:text-navy-overlay text-navy text-sm w-full'
-
-const labelClassName = 'text-sm font-medium text-navy'
 
 export default function ScheduleFormModal( { open, onOpenChange, schedule }: Props ) {
   const queryClient = useQueryClient()
@@ -139,25 +136,15 @@ export default function ScheduleFormModal( { open, onOpenChange, schedule }: Pro
           onSubmit={handleSubmit( onSubmit )}
           noValidate
         >
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="name"
-              className={labelClassName}
-            >
-              Name
-            </label>
-            <input
-              {...register( 'name' )}
-              placeholder="Name"
-              id="name"
-              className={inputClassName}
-            />
-            {errors.name?.message ? (
-              <p className="text-sm text-red-500">{errors.name.message}</p>
-            ) : null}
-          </div>
+          <Input
+            id="name"
+            label="Name"
+            placeholder="Name"
+            error={errors.name?.message}
+            {...register( 'name' )}
+          />
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <label
               htmlFor="cron_expr"
               className={labelClassName}
@@ -186,7 +173,6 @@ export default function ScheduleFormModal( { open, onOpenChange, schedule }: Pro
                     } }
                     placeholder="Pick a time"
                     ariaLabel="Pick a time"
-                    className={inputClassName}
                   />
                   {field.value ? (
                     <p className="text-xs text-navy-overlay">
@@ -196,7 +182,7 @@ export default function ScheduleFormModal( { open, onOpenChange, schedule }: Pro
                     </p>
                   ) : null}
                   {errors.cron_expr?.message ? (
-                    <p className="text-sm text-red-500">
+                    <p className="text-xs text-red-500">
                       {errors.cron_expr.message}
                     </p>
                   ) : null}
@@ -205,7 +191,7 @@ export default function ScheduleFormModal( { open, onOpenChange, schedule }: Pro
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <label
               htmlFor="action"
               className={labelClassName}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ClockIcon, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { inputClassName } from './inputStyles'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -242,9 +243,10 @@ export default function TimePicker( {
           aria-label={ariaLabel}
           data-name="time-picker"
           className={ cn(
-            className,
-            'flex items-center gap-2 text-navy-overlay w-54',
+            inputClassName,
+            'flex items-center gap-2 w-54',
             value ? 'text-navy' : 'text-navy-overlay',
+            className,
           ) }
         >
           <ClockIcon className='size-4'/>
